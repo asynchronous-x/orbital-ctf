@@ -4,19 +4,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { signIn } from 'next-auth/react';
 import TeamIconSelection from '@/components/auth/TeamIconSelection';
-import { signUp } from '@/utils/api';
 
 export default function SignUp() {
   const router = useRouter();
   const [error, setError] = useState('');
-  const [teamOption, setTeamOption] = useState<'create' | 'join'>('create');
+  const [teamOption, setTeamOption] = useState('create');
   const [selectedIcon, setSelectedIcon] = useState('GiSpaceship');
   const [selectedColor, setSelectedColor] = useState('#ffffff');
 
   const handleTeamOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTeamOption(e.target.value as 'create' | 'join');
+    setTeamOption(e.target.value);
   };
 
   useEffect(() => {
@@ -39,33 +37,29 @@ export default function SignUp() {
     const formData = new FormData(e.currentTarget);
     const name = formData.get('name') as string;
     const alias = formData.get('alias') as string;
-    const password = formData.get('password') as string;
     const teamName = formData.get('teamName') as string;
     const teamCode = formData.get('teamCode') as string;
 
     try {
-      const data = await signUp({ 
-        name,
-        alias, 
-        password,
-        teamOption,
-        teamName,
-        teamCode,
-        teamIcon: selectedIcon,
-        teamColor: selectedColor
-      });
+      // Static placeholder data
+      const signupResponse = {
+        success: true,
+        message: 'Account created successfully',
+        user: {
+          id: '1',
+          name: name,
+          alias: alias,
+          teamId: '1',
+          teamName: teamName,
+          teamCode: teamCode
+        }
+      };
 
-      toast.success('Account created successfully! Signing you in...');
-
-      const result = await signIn('credentials', {
-        alias: data.user.alias,
-        password: data.user.password,
-        redirect: false,
-      });
-
-      if (result?.error) throw new Error('Failed to sign in automatically');
-
-      router.push('/dashboard');
+      if (signupResponse.success) {
+        router.push('/dashboard');
+      } else {
+        setError(signupResponse.message);
+      }
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);

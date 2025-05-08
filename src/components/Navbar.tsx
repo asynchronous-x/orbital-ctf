@@ -1,11 +1,9 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { TfiMenu } from "react-icons/tfi";
-import { fetchSiteConfigurations, SiteConfiguration } from '@/utils/api';
 
 interface CRTEffects {
   scanlines: boolean;
@@ -14,8 +12,40 @@ interface CRTEffects {
   glow: boolean;
 }
 
+interface SiteConfig {
+  key: string;
+  value: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  alias: string;
+  teamId: string;
+  isAdmin: boolean;
+  isTeamLeader: boolean;
+}
+
+interface Session {
+  user: User | null;
+}
+
+type AuthStatus = string;
+
 export default function Navbar() {
-  const { data: session, status } = useSession();
+  // Mock session data
+  const mockSession: Session = {
+    user: {
+      id: "1",
+      name: "Admin User",
+      alias: "admin",
+      teamId: "1",
+      isAdmin: true,
+      isTeamLeader: true
+    }
+  };
+  const mockStatus: AuthStatus = 'authenticated';
+
   const pathname = usePathname();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isCrtMenuOpen, setIsCrtMenuOpen] = useState(false);
@@ -32,14 +62,15 @@ export default function Navbar() {
   const crtRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchSiteConfigurations()
-      .then((configs: SiteConfiguration[]) => {
-        const titleConfig = configs.find(c => c.key === 'site_title');
-        if (titleConfig) setTitle(titleConfig.value);
-      })
-      .catch(error => {
-        console.error('Failed to fetch site configuration:', error);
-      });
+    // Static placeholder data
+    const configs: SiteConfig[] = [
+      { key: 'site_title', value: 'Orbital CTF' },
+      { key: 'site_description', value: 'Capture The Flag Competition' },
+      { key: 'site_theme', value: 'dark' }
+    ];
+    
+    const titleConfig = configs.find(c => c.key === 'site_title');
+    if (titleConfig) setTitle(titleConfig.value);
   }, []);
 
   useEffect(() => {
@@ -106,7 +137,7 @@ export default function Navbar() {
               {isNavOpen && (
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-4 w-48 bg-black border pointer-events-auto">
                   {/* Profile Section at Top */}
-                  {status === 'authenticated' ? (
+                  {mockStatus === 'authenticated' && mockSession.user ? (
                     <>
                       <Link
                         href="/profile"
@@ -115,6 +146,21 @@ export default function Navbar() {
                       >  
                         <span>Profile</span>
                       </Link>
+                      <Link
+                        href="/auth/signin"
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                        onClick={handleNavigation}
+                      >
+                        Sign In
+                      </Link>
+                      <Link
+                        href="/auth/signup"
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                        onClick={handleNavigation}
+                      >
+                        Sign Up
+                      </Link>
+                      <div className="border-b border-gray-700 my-2"></div>
                     </>
                   ) : (
                     <>
@@ -164,7 +210,7 @@ export default function Navbar() {
                   >
                     Rules
                   </Link>
-                  {session?.user?.isAdmin && (
+                  {mockSession.user?.isAdmin && (
                     <Link
                       href="/admin"
                       className={`block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 ${
@@ -175,15 +221,6 @@ export default function Navbar() {
                       Admin
                     </Link>
                   )}
-                  {status === 'authenticated' && (
-                    <Link
-                      href="/api/auth/signout"
-                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                      onClick={handleNavigation}
-                    >
-                      Sign Out
-                    </Link>
-                  )}
                 </div>
               )}
             </div>
@@ -192,7 +229,7 @@ export default function Navbar() {
           {/* Title - Left on mobile, centered on desktop */}
           <div className="flex-1 sm:flex-none">
             <Link 
-              href={status === 'authenticated' ? "/dashboard" : "/"} 
+              href={mockStatus === 'authenticated' ? "/dashboard" : "/"} 
               className="text-xl font-bold text-white uppercase pointer-events-auto"
             >
               {title?.toUpperCase() || "ORBITAL CTF"}
@@ -265,14 +302,31 @@ export default function Navbar() {
           {isMobileMenuOpen && (
             <div className="sm:hidden absolute top-16 left-0 right-0 bg-black border-t border-white/20 pointer-events-auto">
               {/* Mobile Navigation Links */}
-              {status === 'authenticated' ? (
-                <Link
-                  href="/profile"
-                  className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Profile
-                </Link>
+              {mockStatus === 'authenticated' && mockSession.user ? (
+                <>
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    href="/auth/signin"
+                    className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign Up
+                  </Link>
+                  <div className="border-b border-gray-700 my-2"></div>
+                </>
               ) : (
                 <>
                   <Link
@@ -314,22 +368,13 @@ export default function Navbar() {
               >
                 Rules
               </Link>
-              {session?.user?.isAdmin && (
+              {mockSession.user?.isAdmin && (
                 <Link
                   href="/admin"
                   className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Admin
-                </Link>
-              )}
-              {status === 'authenticated' && (
-                <Link
-                  href="/api/auth/signout"
-                  className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Sign Out
                 </Link>
               )}
 

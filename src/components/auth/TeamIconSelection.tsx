@@ -25,13 +25,13 @@ export default function TeamIconSelection({ selectedIcon, selectedColor, onIconS
     const loadIcons = async () => {
       setLoading(true);
       try {
-        const module = await import('react-icons/gi');
-        const iconNames = Object.keys(module);
+        const iconModule = await import('react-icons/gi');
+        const iconNames = Object.keys(iconModule);
         const filteredIcons = iconNames
           .filter(name => name.toLowerCase().includes(searchQuery.toLowerCase()))
           .map(name => ({
             name,
-            component: module[name as keyof typeof module] as IconType
+            component: iconModule[name as keyof typeof iconModule] as IconType
           }));
         setIcons(filteredIcons);
         // Reset to page 1 when search changes

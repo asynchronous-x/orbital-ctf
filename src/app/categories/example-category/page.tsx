@@ -1,22 +1,58 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import DetailedCategoryView from '@/components/DetailedCategoryView';
 import { useRouter } from 'next/navigation';
 import { IoArrowBack } from 'react-icons/io5';
-import { CategoryChallenge, fetchChallengesByCategory } from '@/utils/api';
 
-export default function CategoryPage() {
-  const params = useParams();
+interface Challenge {
+  id: string;
+  title: string;
+  isSolved: boolean;
+  isLocked: boolean;
+  points: number;
+  category: string;
+  solvedBy: { teamId: string; teamColor: string }[];
+}
+
+// Mock data for example-category
+const mockChallenges: Challenge[] = [
+  {
+    id: '1',
+    title: 'Web Challenge 1',
+    isSolved: false,
+    isLocked: false,
+    points: 100,
+    category: 'example-category',
+    solvedBy: []
+  },
+  {
+    id: '2',
+    title: 'Web Challenge 2',
+    isSolved: false,
+    isLocked: false,
+    points: 200,
+    category: 'example-category',
+    solvedBy: []
+  },
+  {
+    id: '3',
+    title: 'Web Challenge 3',
+    isSolved: false,
+    isLocked: true,
+    points: 300,
+    category: 'example-category',
+    solvedBy: []
+  }
+];
+
+export default function ExampleCategoryPage() {
   const router = useRouter();
-  const [challenges, setChallenges] = useState<CategoryChallenge[]>([]);
   const [hoveredChallenge, setHoveredChallenge] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [dots, setDots] = useState('   '); // Initialize with 3 spaces
-  const categoryId = params.categoryId as string;
+  const [dots, setDots] = useState('   ');
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -40,22 +76,8 @@ export default function CategoryPage() {
   }, []);
 
   // Calculate stats
-  const totalPoints = challenges.reduce((sum, challenge) => sum + challenge.points, 0);
-  const categoryName = challenges[0]?.category || decodeURIComponent(categoryId);
-
-  useEffect(() => {
-    const loadChallenges = async () => {
-      try {
-        const data = await fetchChallengesByCategory(categoryId);
-        setChallenges(data.challenges);
-      } catch (error) {
-        console.error('Error fetching challenges:', error);
-        router.push('/dashboard');
-      }
-    };
-
-    loadChallenges();
-  }, [categoryId, router]);
+  const totalPoints = mockChallenges.reduce((sum, challenge) => sum + challenge.points, 0);
+  const categoryName = 'Example Category';
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-0">
@@ -108,7 +130,7 @@ export default function CategoryPage() {
             <ambientLight intensity={0.5} />
             <pointLight position={[10, 10, 10]} />
             <DetailedCategoryView
-              challenges={challenges}
+              challenges={mockChallenges}
               hoveredChallenge={hoveredChallenge}
               setHoveredChallenge={setHoveredChallenge}
             />
@@ -129,42 +151,42 @@ export default function CategoryPage() {
             <h2 className="text-2xl font-semibold mb-4 text-blue-400">CATEGORY</h2>
             <div className="space-y-2 text-white">
               <p>Category: <span className="text-blue-400">{categoryName}</span></p>
-              <p>Total Challenges: <span className="text-blue-400">{challenges.length}</span></p>
+              <p>Total Challenges: <span className="text-blue-400">{mockChallenges.length}</span></p>
               <p>Total Points Available: <span className="text-blue-400">{totalPoints}</span></p>
             </div>
           </div>
 
-        {/* Challenges box */}
-        <div className="w-full lg:w-[300px] border border-white p-4 h-auto lg:h-[600px]">
-          <h2 className="text-2xl font-semibold mb-4 text-blue-400">CHALLENGES</h2>
-          <div className="grid grid-cols-1 gap-4 overflow-y-auto max-h-[320px]">
-            {challenges.map((challenge) => (
-              <div
-                key={challenge.id}
-                className={`p-4 border transition-colors duration-200 cursor-pointer
-                  ${challenge.isLocked ? 'border-yellow-500 text-yellow-500' :
-                    challenge.isSolved ? 'border-green-500 text-green-500' :
-                      hoveredChallenge === challenge.id ? 'border-blue-400 text-blue-400' :
-                        'border-white text-white hover:border-blue-400 hover:text-blue-400'}`}
-                onClick={() => !challenge.isLocked && router.push(`/challenges/${challenge.id}`)}
-                onMouseEnter={() => setHoveredChallenge(challenge.id)}
-                onMouseLeave={() => setHoveredChallenge(null)}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{challenge.title}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">{challenge.points} pts</span>
-                    {challenge.isLocked ? (
-                      <span>🔒</span>
-                    ) : challenge.isSolved ? (
-                      <span>✓</span>
-                    ) : null}
+          {/* Challenges box */}
+          <div className="w-full lg:w-[300px] border border-white p-4 h-auto lg:h-[600px]">
+            <h2 className="text-2xl font-semibold mb-4 text-blue-400">CHALLENGES</h2>
+            <div className="grid grid-cols-1 gap-4 overflow-y-auto max-h-[320px]">
+              {mockChallenges.map((challenge) => (
+                <div
+                  key={challenge.id}
+                  className={`p-4 border transition-colors duration-200 cursor-pointer
+                    ${challenge.isLocked ? 'border-yellow-500 text-yellow-500' :
+                      challenge.isSolved ? 'border-green-500 text-green-500' :
+                        hoveredChallenge === challenge.id ? 'border-blue-400 text-blue-400' :
+                          'border-white text-white hover:border-blue-400 hover:text-blue-400'}`}
+                  onClick={() => !challenge.isLocked && router.push(`/challenges/example-challenge`)}
+                  onMouseEnter={() => setHoveredChallenge(challenge.id)}
+                  onMouseLeave={() => setHoveredChallenge(null)}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>{challenge.title}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-400">{challenge.points} pts</span>
+                      {challenge.isLocked ? (
+                        <span>🔒</span>
+                      ) : challenge.isSolved ? (
+                        <span>✓</span>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
           {/* Back button - now responsive */}
           <button

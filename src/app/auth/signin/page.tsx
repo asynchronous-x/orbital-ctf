@@ -1,37 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 export default function SignIn() {
-  const router = useRouter();
-  const [error, setError] = useState('');
+  const [error] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const alias = formData.get('alias') as string;
-    const password = formData.get('password') as string;
-
-    try {
-      const result = await signIn('credentials', {
-        alias,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError('Invalid credentials');
-      } else {
-        toast.success('Successfully logged in!');
-        router.push('/dashboard');
-      }
-    } catch (error) {
-      setError('An error occurred: ' + (error as Error).message);
-    }
+    toast.error('Static preview site only - no logging in available', {
+      duration: 4000,
+    });
   };
 
   return (

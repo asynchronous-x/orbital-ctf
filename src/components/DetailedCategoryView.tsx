@@ -84,7 +84,7 @@ export default function DetailedCategoryView({
                 anchorX="center"
                 anchorY="middle"
                 maxWidth={6}
-                font="/SquadaOne-Regular.ttf"
+                font="/orbital-ctf/SquadaOne-Regular.ttf"
               >
                 {getChallengeText()}
               </Text>

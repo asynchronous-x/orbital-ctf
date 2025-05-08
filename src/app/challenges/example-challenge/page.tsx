@@ -1,24 +1,84 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Righteous } from 'next/font/google';
 import { MarkdownComponents } from '@/components/MarkdownComponents';
 import toast from 'react-hot-toast';
 import { IoArrowBack } from 'react-icons/io5';
-import { Challenge, Hint, fetchChallenge, fetchHints, purchaseHint, submitFlag, downloadFile } from '@/utils/api';
 
 const righteous = Righteous({ weight: '400', subsets: ['latin'] });
 
-export default function ChallengePage() {
-  const params = useParams();
+
+interface Challenge {
+  id: string;
+  title: string;
+  description?: string;
+  points: number;
+  difficulty: string;
+  isSolved?: boolean;
+  category: string;
+  solvedByTeamId?: string;
+  files?: {
+    name: string;
+    path: string;
+    size: number;
+  }[];
+  isLocked?: boolean;
+  unlockReason?: string;
+}
+
+interface Hint {
+  id: string;
+  content: string;
+  cost: number;
+  isPurchased: boolean;
+}
+
+// Mock data for example challenge
+const mockChallenge: Challenge = {
+  id: 'example-challenge',
+  title: 'Web Challenge 1',
+  description: 'Find the hidden flag in this web application. The flag format is CTF{...}',
+  points: 100,
+  difficulty: 'Easy',
+  isSolved: false,
+  category: 'Web',
+  files: [
+    {
+      name: 'web-challenge.zip',
+      path: '/files/web-challenge.zip',
+      size: 1024
+    }
+  ],
+  isLocked: false
+};
+
+const mockHints: Hint[] = [
+  {
+    id: '1',
+    content: 'Check the source code of the page',
+    cost: 10,
+    isPurchased: true
+  },
+  {
+    id: '2',
+    content: 'Look for hidden directories',
+    cost: 20,
+    isPurchased: false
+  },
+  {
+    id: '3',
+    content: 'The flag is in a file named flag.txt',
+    cost: 30,
+    isPurchased: false
+  }
+];
+
+export default function ExampleChallengePage() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [hints, setHints] = useState<Hint[]>([]);
   const [flag, setFlag] = useState('');
   const [submissionStatus, setSubmissionStatus] = useState<{
     message: string;
@@ -26,11 +86,13 @@ export default function ChallengePage() {
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
-  const challengeId = params.challengeId as string;
 
   const handleDownload = async (url: string, filename: string) => {
     try {
-      const blob = await downloadFile(filename);
+      const response = await fetch(`/api/files/download?filename=${encodeURIComponent(filename)}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
@@ -45,34 +107,15 @@ export default function ChallengePage() {
     }
   };
 
-  useEffect(() => {
-    const loadChallenge = async () => {
-      try {
-        const [challengeData, hintsData] = await Promise.all([
-          fetchChallenge(challengeId),
-          session ? fetchHints(challengeId) : []
-        ]);
-
-        setChallenge(challengeData);
-        setHints(hintsData);
-      } catch (error) {
-        console.error('Error fetching challenge:', error);
-        router.push('/dashboard');
-      }
-    };
-
-    loadChallenge();
-  }, [challengeId, router, session]);
-
-  const handlePurchaseHint = async (hintId: string) => {
+  const handlePurchaseHint = async () => {
     setIsPurchasing(true);
     try {
-      await purchaseHint(hintId);
-      const hintsData = await fetchHints(challengeId);
-      setHints(hintsData);
+      // Simulate hint purchase
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      toast.success('Hint purchased successfully!');
     } catch (error) {
       console.error('Error purchasing hint:', error);
-      toast.error(error instanceof Error ? error.message : 'Error purchasing hint');
+      toast.error('Error purchasing hint');
     } finally {
       setIsPurchasing(false);
     }
@@ -84,13 +127,15 @@ export default function ChallengePage() {
     setSubmissionStatus(null);
 
     try {
-      const data = await submitFlag(challengeId, flag);
-      setSubmissionStatus(data);
-
-      if (data.isCorrect) {
-        const challengeData = await fetchChallenge(challengeId);
-        setChallenge(challengeData);
-        toast.success(`Correct! You earned ${data.points} points!`);
+      // Simulate flag submission
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      const isCorrect = flag === 'CTF{example_flag}';
+      setSubmissionStatus({
+        message: isCorrect ? 'Correct flag! Challenge solved!' : 'Incorrect flag. Try again.',
+        isCorrect
+      });
+      if (isCorrect) {
+        toast.success('Flag submitted successfully!');
       }
     } catch (error) {
       console.error('Error submitting flag:', error);
@@ -100,19 +145,18 @@ export default function ChallengePage() {
       });
     } finally {
       setIsSubmitting(false);
-      setFlag('');
     }
   };
 
-  if (challenge?.isLocked) {
+  if (mockChallenge.isLocked) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center p-8 border bg-black/90 max-w-md">
           <h1 className="text-3xl font-bold mb-4">Challenge Locked</h1>
-          <p className="text-gray-300 mb-2">Title: {challenge.title}</p>
-          <p className="text-gray-300 mb-2">Category: {challenge.category}</p>
-          <p className="text-gray-300 mb-4">Points: {challenge.points}</p>
-          <p className="text-yellow-400 mb-6">Reason: {challenge.unlockConditions.map(condition => condition.type).join(', ') || 'Unlock conditions not met.'}</p>
+          <p className="text-gray-300 mb-2">Title: {mockChallenge.title}</p>
+          <p className="text-gray-300 mb-2">Category: {mockChallenge.category}</p>
+          <p className="text-gray-300 mb-4">Points: {mockChallenge.points}</p>
+          <p className="text-yellow-400 mb-6">Reason: {mockChallenge.unlockReason || 'Unlock conditions not met.'}</p>
           <button 
             onClick={() => router.back()} 
             className="px-4 py-2 border border-white hover:bg-white hover:text-black flex items-center mx-auto"
@@ -124,26 +168,19 @@ export default function ChallengePage() {
     );
   }
 
-  if (!challenge) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="container mx-auto px-4 py-8 flex justify-center items-center">
         <div className="w-full max-w-5xl overflow-hidden">
           <div className="h-[80vh] overflow-y-auto">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
-              <h1 className={`text-5xl font-bold ${righteous.className}`}>{challenge.title}</h1>
-              <div className="flex md:flex-row md:items-center gap-2 md:gap-4 mt-2 md:mt-0">
-                <span className="max-w-fit px-3 py-1 bg-green-500/10 border border-green-500 text-green-400 rounded-full font-mono text-sm">
-                  {challenge.multipleFlags 
-                    ? `${challenge.flags?.reduce((sum, flag) => sum + flag.points, 0)} TOTAL POINTS`
-                    : `${challenge.points} POINTS`
-                  }
+              <h1 className={`text-5xl font-bold ${righteous.className}`}>{mockChallenge.title}</h1>
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-2 md:mt-0">
+                <span className="px-3 py-1 bg-green-500/10 border border-green-500 text-green-400 rounded-full font-mono text-sm">
+                  {mockChallenge.points} POINTS
                 </span>
-                <span className="max-w-fit px-3 py-1 bg-blue-500/10 border border-blue-500 text-blue-400 rounded-full font-mono text-sm">
-                  {challenge.category.toUpperCase()}
+                <span className="px-3 py-1 bg-blue-500/10 border border-blue-500 text-blue-400 rounded-full font-mono text-sm">
+                  {mockChallenge.category.toUpperCase()}
                 </span>
               </div>
             </div>
@@ -156,16 +193,16 @@ export default function ChallengePage() {
                 remarkPlugins={[remarkGfm]}
                 skipHtml={false}
               >
-                {challenge.description || ''}
+                {mockChallenge.description || ''}
               </ReactMarkdown>
             </div>
 
-            {challenge.files && challenge.files.length > 0 && (
+            {mockChallenge.files && mockChallenge.files.length > 0 && (
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-4">Files</h2>
                 <div className="border-t-2 border-b-2 border-gray-700 mb-4" />
                 <div className="space-y-2">
-                  {challenge.files.map((file, index) => (
+                  {mockChallenge.files.map((file, index) => (
                     <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-800">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-400">📎</span>
@@ -184,18 +221,18 @@ export default function ChallengePage() {
               </div>
             )}
 
-            {session && hints.length > 0 && (
+            {mockHints.length > 0 && (
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-4">Hints</h2>
                 <div className="border-t-2 border-b-2 border-gray-700 mb-6" />
                 <div className="space-y-4">
-                  {hints.map((hint) => (
+                  {mockHints.map((hint) => (
                     <div key={hint.id}>
                       <div className="flex justify-between items-center mb-2">
                         <span>Cost: {hint.cost} points</span>
                         {!hint.isPurchased ? (
                           <button
-                            onClick={() => handlePurchaseHint(hint.id)}
+                            onClick={() => handlePurchaseHint()}
                             disabled={isPurchasing}
                             className="px-4 py-2 border-2 border-white hover:bg-white hover:text-black disabled:opacity-50"
                           >
@@ -216,7 +253,7 @@ export default function ChallengePage() {
               </div>
             )}
 
-            {session && !challenge.isSolved && (
+            {!mockChallenge.isSolved && (
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-4">Submit Flag</h2>
                 <div className="border-t-2 border-b-2 border-gray-700 mb-6" />
@@ -243,45 +280,6 @@ export default function ChallengePage() {
                     </div>
                   )}
                 </form>
-              </div>
-            )}
-
-            {challenge.multipleFlags && (
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-4">Challenge Progress</h2>
-                <div className="border-t-2 border-b-2 border-gray-700 mb-6" />
-                <div className="space-y-2">
-                  {challenge.flags?.map((flag) => (
-                    <div 
-                      key={flag.id}
-                      className={`flex justify-between items-center p-3 border ${
-                        flag.isSolved 
-                          ? 'border-green-500 bg-green-500/10'
-                          : 'border-blue-500 bg-blue-500/10'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">
-                          {flag.isSolved ? '✓' : '○'}
-                        </span>
-                        <span className="font-mono">
-                          {flag.points} points
-                        </span>
-                      </div>
-                      <span className="text-sm opacity-75">
-                        {flag.isSolved ? 'Solved' : 'Unsolved'}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="mt-4 p-3">
-                    <div className="flex justify-between items-center">
-                      <span className="font-mono">Total Progress</span>
-                      <span className="font-mono">
-                        {challenge.flags?.filter(f => f.isSolved).reduce((sum, flag) => sum + flag.points, 0)} / {challenge.flags?.reduce((sum, flag) => sum + flag.points, 0)} points
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
           </div>

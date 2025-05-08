@@ -1,42 +1,93 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import * as GiIcons from 'react-icons/gi';
 import PageLayout from '@/components/layouts/PageLayout';
-import { fetchTeam } from '@/utils/api';
-import { Team } from '@/components/admin/types';
+
+
+interface User {
+  id: string;
+  name: string;
+  alias: string;
+  isAdmin: boolean;
+  isTeamLeader: boolean;
+}
+
+interface Team {
+  id: string;
+  name: string;
+  code: string;
+  score: number;
+  icon?: string;
+  color?: string;
+  members: {
+    id: string;
+    alias: string;
+    name: string;
+    isTeamLeader: boolean;
+  }[];
+}
 
 export default function Profile() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [team, setTeam] = useState<Team | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadTeamData = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
-      if (session?.user?.teamId) {
-        const data = await fetchTeam(session.user.teamId);
-        setTeam(data);
-      }
-    } catch (error) {
-      console.error('Error fetching team data:', error);
-    } finally {
+      // Static placeholder data for user
+      const userData: User = {
+        id: '1',
+        name: 'John Doe',
+        alias: 'captain',
+        isAdmin: false,
+        isTeamLeader: true
+      };
+
+      // Static placeholder data for team
+      const teamData: Team = {
+        id: '1',
+        name: 'Team Alpha',
+        code: 'ALPHA',
+        score: 1000,
+        icon: '🚀',
+        color: '#FF0000',
+        members: [
+          {
+            id: '1',
+            alias: 'captain',
+            name: 'John Doe',
+            isTeamLeader: true
+          },
+          {
+            id: '2',
+            alias: 'hacker',
+            name: 'Jane Smith',
+            isTeamLeader: false
+          },
+          {
+            id: '3',
+            alias: 'coder',
+            name: 'Bob Johnson',
+            isTeamLeader: false
+          }
+        ]
+      };
+
+      setUser(userData);
+      setTeam(teamData);
       setLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
     }
-  }, [session?.user?.teamId]);
+  }, []);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    } else if (status === 'authenticated' && session?.user?.teamId) {
-      loadTeamData();
-    }
-  }, [status, session, router, loadTeamData]);
+    fetchData();
+  }, [fetchData]);
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center">
         <div>Loading...</div>
@@ -46,7 +97,6 @@ export default function Profile() {
 
   return (
     <PageLayout title="Profile" maxWidth="6xl">
-
       <div className="prose prose-invert max-w-none mb-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           {/* User Information */}
@@ -55,16 +105,16 @@ export default function Profile() {
             <div className="space-y-4">
               <div>
                 <label className="text-gray-400 text-sm">Name</label>
-                <p className="text-white text-lg">{session?.user?.name}</p>
+                <p className="text-white text-lg">{user?.name}</p>
               </div>
               <div>
                 <label className="text-gray-400 text-sm">Alias</label>
-                <p className="text-white text-lg">{session?.user?.alias}</p>
+                <p className="text-white text-lg">{user?.alias}</p>
               </div>
               <div>
                 <label className="text-gray-400 text-sm">Role</label>
                 <p className="text-white text-lg">
-                  {session?.user?.isAdmin ? 'Admin' : session?.user?.isTeamLeader ? 'Team Leader' : 'Member'}
+                  {user?.isAdmin ? 'Admin' : user?.isTeamLeader ? 'Team Leader' : 'Member'}
                 </p>
               </div>
             </div>

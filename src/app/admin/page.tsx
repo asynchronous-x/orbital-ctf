@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 import PageLayout from '@/components/layouts/PageLayout';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -25,17 +23,22 @@ const TABS = [
 ] as const;
 
 export default function AdminDashboard() {
-  const { status } = useSession();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('challenges');
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    }
-  }, [status, router]);
+   // Mock authentication check
+   useEffect(() => {
+    const mockAuthCheck = async () => {
+      setIsLoading(true);
+      // Simulate authentication check
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setIsLoading(false);
+    };
 
-  if (status === 'loading') {
+    mockAuthCheck();
+  }, []);
+
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 

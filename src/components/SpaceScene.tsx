@@ -159,7 +159,7 @@ function CategorySatellite({ satellite, onSelect }: { satellite: CategorySatelli
           color={hovered ? "#4a90e2" : 'white'} // Text color based on hover
           anchorX="center"
           anchorY="middle"
-          font="/SquadaOne-Regular.ttf"
+          font="/orbital-ctf/SquadaOne-Regular.ttf"
         >
           {text}
         </Text>
@@ -272,7 +272,7 @@ export default function SpaceScene({ isMobile }: { isMobile?: boolean }) {
             <OrbitTrail satellite={category} />
             <CategorySatellite
               satellite={category}
-              onSelect={() => router.push(`/categories/${category.id}`)}
+              onSelect={() => router.push(`/categories/example-category`)}
             />
           </group>
         ))}
