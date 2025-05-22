@@ -50,7 +50,7 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV CHALLENGES_DIR=/challenges
-ENV INGEST_CHALLENGES_AT_STARUP=false
+ENV INGEST_CHALLENGES_AT_STARTUP=false
 
 
 # Initialize database and run the app
