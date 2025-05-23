@@ -40,7 +40,7 @@ COPY --from=builder /app/package.json ./
 
 # Create a non-root user and switch to it
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 --ingroup nodejs --disabled-password --shell /sbin/nologin nextjs
 USER nextjs
 
 # Expose the port the app runs on
