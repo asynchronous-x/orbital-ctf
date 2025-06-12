@@ -16,9 +16,10 @@ export default function Leaderboard({ teams, currentUserTeam, isOpen, setIsOpen,
   const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
   
   // Find current user's team rank
-  const userTeamRank = currentUserTeam 
-    ? sortedTeams.findIndex(team => team.id === currentUserTeam.id) + 1 
-    : null;
+  const userTeamRankIndex = currentUserTeam
+    ? sortedTeams.findIndex(team => team.id === currentUserTeam.id)
+    : -1;
+  const userTeamRank = userTeamRankIndex !== -1 ? userTeamRankIndex + 1 : null;
 
   // Helper function to get the icon component
   const getTeamIcon = (iconName?: string, color?: string) => {
@@ -84,7 +85,9 @@ export default function Leaderboard({ teams, currentUserTeam, isOpen, setIsOpen,
                     <h3 className="text-lg font-bold text-white">{currentUserTeam.name}</h3>
                   </div>
                   <div className="text-sm text-gray-400">
-                    <div>Rank: #{userTeamRank}</div>
+                    {userTeamRank !== null && (
+                      <div>Rank: #{userTeamRank}</div>
+                    )}
                     <div>Score: {currentUserTeam.score} pts</div>
                   </div>
                 </div>
