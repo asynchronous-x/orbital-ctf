@@ -22,6 +22,7 @@ import {
   Team,
   AdminSubmission,
   AdminActivityLog,
+  AdminMetrics,
 } from '@/types';
 
 export async function fetchSiteConfig(): Promise<SiteConfig[]> {
@@ -459,6 +460,14 @@ export async function deleteAdminActivityLog(id: string): Promise<void> {
   }
 }
 
+export async function fetchAdminMetrics(): Promise<AdminMetrics> {
+  const response = await fetch('/api/admin/metrics');
+  if (!response.ok) {
+    throw new Error('Failed to fetch metrics');
+  }
+  return response.json();
+}
+
 export async function signUp(data: SignUpRequest): Promise<SignUpResponse> {
   const response = await fetch('/api/auth/signup', {
     method: 'POST',
@@ -492,4 +501,5 @@ export type {
   Team,
   AdminSubmission,
   AdminActivityLog,
+  AdminMetrics,
 };

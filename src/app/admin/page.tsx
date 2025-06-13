@@ -15,9 +15,11 @@ import SubmissionsTab from '@/components/admin/SubmissionsTab';
 import ActivityLogTab from '@/components/admin/ActivityLogTab';
 import GameConfigurationTab from '@/components/admin/GameConfigurationTab';
 import SiteConfigurationTab from '@/components/admin/SiteConfigurationTab';
+import MetricsTab from '@/components/admin/MetricsTab';
 import { Tab } from '@/types';
 
 const TABS = [
+  { id: 'metrics' as Tab, label: 'Metrics' },
   { id: 'challenges' as Tab, label: 'Challenges' },
   { id: 'users' as Tab, label: 'Users' },
   { id: 'teams' as Tab, label: 'Teams' },
@@ -62,6 +64,7 @@ export default function AdminDashboard() {
         {/* Content Area - Conditionally render the active tab */}
         <div className="mt-6">
           {activeTab === 'challenges' && <ChallengesTab />}
+          {activeTab === 'metrics' && <MetricsTab />}
           {activeTab === 'users' && <UsersTab />}
           {activeTab === 'teams' && <TeamsTab />}
           {activeTab === 'submissions' && <SubmissionsTab />}
