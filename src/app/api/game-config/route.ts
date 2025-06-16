@@ -16,7 +16,7 @@ export async function GET() {
         isActive: false,
         startTime: null,
         endTime: null,
-        hasEndTime: true
+        hasEndTime: true,
       });
     }
 
@@ -25,7 +25,7 @@ export async function GET() {
       ...gameConfig,
       startTime: gameConfig.startTime.toISOString(),
       endTime: gameConfig.endTime?.toISOString() || null,
-      hasEndTime: gameConfig.endTime !== null
+      hasEndTime: gameConfig.endTime !== null,
     });
   } catch (error) {
     console.error('Error fetching game config:', error);
