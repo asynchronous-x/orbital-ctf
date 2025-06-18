@@ -132,9 +132,12 @@ NEXTAUTH_SECRET="your-secret-here"
 NEXTAUTH_URL="http://localhost:3000"
 INGEST_CHALLENGES_AT_STARTUP=true
 CHALLENGES_DIR="./challenges"
+GAME_START_TIME=""
+GAME_END_TIME=""
 ```
 
 Set `INGEST_CHALLENGES_AT_STARTUP` to `true` if you want challenges in `CHALLENGES_DIR` automatically imported when the server starts.
+`GAME_START_TIME` and `GAME_END_TIME` accept ISO 8601 date strings. When set, these values replace the existing start and end times in the database during server startup.
 
 ## 📝 License
 
